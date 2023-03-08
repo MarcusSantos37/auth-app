@@ -2,6 +2,7 @@ import * as yup from "yup";
 
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 interface RegisterAccountData {
@@ -21,8 +22,18 @@ export function Register() {
     resolver: yupResolver(schema),
   });
 
+  const navigate = useNavigate();
+
   const registerAccount = async (values: RegisterAccountData) => {
-    await axios.post("http://localhost:1337/api/register", values);
+    const { data } = await axios.post(
+      "http://localhost:1337/api/register",
+      values
+    );
+    if (data.status === "ok") {
+      navigate("/login");
+    } else {
+      alert("Erro ao cadastrar conta. Tente novamente!");
+    }
   };
 
   return (

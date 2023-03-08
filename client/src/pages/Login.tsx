@@ -2,6 +2,7 @@ import * as yup from "yup";
 
 import axios from "axios";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
 
 interface LoginAccountData {
@@ -19,8 +20,21 @@ export function Login() {
     resolver: yupResolver(schema),
   });
 
+  const navigate = useNavigate();
+
   const loginAccount = async (values: LoginAccountData) => {
-    await axios.post("http://localhost:1337/api/login", values);
+    const { data } = await axios.post(
+      "http://localhost:1337/api/login",
+      values
+    );
+
+    if (data.user) {
+      localStorage.setItem("token", data.user);
+      alert("Login bem sucedido");
+      navigate("/dashboard");
+    } else {
+      alert("Por favor, verifique seu email e senha");
+    }
   };
 
   return (
