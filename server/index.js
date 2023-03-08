@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
+const jwt = require('jsonwebtoken')
 
 const User = require('./models/user.model')
 
@@ -18,9 +19,6 @@ app.post("/api/register", async (req, res) => {
       email: req.body.email,
       password: req.body.password,
     });
-
-    console.log('register log', response)
-
     res.json({ status: "ok" });
   } catch (err) {
     res.json({ status: "error", error: "Duplicate email" });
@@ -34,7 +32,13 @@ app.post("/api/login", async (req, res) => {
   });
 
   if (user) {
-    return res.json({ status: "ok", user: true });
+
+    const token = jwt.sign({
+      name: user.name,
+      email: user.email,
+    }, 'secret123')
+
+    return res.json({ status: "ok", user: token });
   } else {
     return res.json({ status: "error", user: false });
   }
