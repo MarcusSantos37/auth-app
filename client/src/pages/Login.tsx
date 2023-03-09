@@ -2,6 +2,7 @@ import * as yup from "yup";
 
 import axios from "axios";
 import { decodeToken } from "react-jwt";
+import { toast } from "react-toastify";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -30,12 +31,12 @@ export function Login() {
       values
     );
 
-    if (data.user) {
-      localStorage.setItem("token", data.user);
-      alert("Login bem sucedido");
+    if (data.token) {
+      localStorage.setItem("token", data.token);
+      toast.success(data.message);
       navigate("/dashboard");
     } else {
-      alert("Por favor, verifique seu email e senha");
+      toast.error(data.message);
     }
   };
 
