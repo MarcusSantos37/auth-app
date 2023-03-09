@@ -5,6 +5,8 @@ import { Login } from "./Login";
 import { PageNotFound } from "./PageNotFound";
 import { Register } from "./Register";
 
+const token = localStorage.getItem("token");
+
 const router = createBrowserRouter([
   {
     path: "/dashboard",
@@ -21,6 +23,10 @@ const router = createBrowserRouter([
   {
     path: "*",
     element: <PageNotFound />,
+  },
+  {
+    path: "/",
+    element: token ? <Dashboard /> : <Login />,
   },
 ]);
 

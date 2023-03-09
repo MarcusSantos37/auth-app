@@ -1,6 +1,8 @@
 import * as yup from "yup";
 
 import axios from "axios";
+import { decodeToken } from "react-jwt";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -36,6 +38,17 @@ export function Login() {
       alert("Por favor, verifique seu email e senha");
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      const user = decodeToken(token);
+      if (user) {
+        navigate("/dashboard");
+      }
+    }
+  }, []);
 
   return (
     <div>
