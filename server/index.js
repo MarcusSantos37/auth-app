@@ -3,41 +3,54 @@ const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs")
+const bcrypt = require("bcryptjs");
 
 const User = require("./models/user.model");
 
 app.use(cors());
 app.use(express.json());
 
+// Connect to mongoDB database
 mongoose.connect("mongodb://localhost:27017/auth-app");
 
+// Create an account
 app.post("/api/register", async (req, res) => {
   try {
+    const existingEmail = await User.findOne({ email: req.body.email });
 
-    const newPassword = await bcrypt.hash(req.body.password, 10)
+    if (existingEmail) {
+      return res.json({ success: false, message: "Esse email já existe" });
+    } else {
+      const newPassword = await bcrypt.hash(req.body.password, 10);
 
-   await User.create({
-      name: req.body.name,
-      email: req.body.email,
-      password: newPassword,
-    });
-    res.json({ status: "ok" });
+      await User.create({
+        name: req.body.name,
+        email: req.body.email,
+        profile: req.body.profile,
+        password: newPassword,
+      });
+    }
+    res.json({ success: true, message: "Usuário criado com sucesso" });
   } catch (err) {
-    res.json({ status: "error", error: "Email duplicado" });
+    console.log(err);
+    res.status(500).send(err);
   }
 });
 
+// Login account
 app.post("/api/login", async (req, res) => {
   const user = await User.findOne({
     email: req.body.email,
   });
 
-  if(!user) {
-    return {status:'error', error: 'Login inválido'}
+  if (!user) {
+    return res.json({ success: false, message: "Esse usuário não existe" });
   }
 
-  const isPasswordValid = await bcrypt.compare(req.body.password, user.password)
+  const isPasswordValid = await bcrypt.compare(
+    req.body.password,
+    user.password
+  );
 
   if (isPasswordValid) {
     const token = jwt.sign(
@@ -48,50 +61,34 @@ app.post("/api/login", async (req, res) => {
       "secret123"
     );
 
-    return res.json({ status: "ok", user: token });
+    return res.json({ success: true, token });
   } else {
-    return res.json({ status: "error", user: false });
+    return res.json({ success: false, message: "Senha inválida" });
   }
 });
 
-app.get("/api/quote", async (req, res) => {
-  const token = req.headers["x-access-token"];
-
+// Fetch user information
+app.get("/api/user", async (req, res) => {
   try {
+    const token = req.headers["x-access-token"];
     const decoded = jwt.verify(token, "secret123");
-    const email = decoded.email;
-     const user = await User.findOne(
-      {
-        email: email,
+    const decodedEmail = decoded.email;
+    const user = await User.findOne({
+      email: decodedEmail,
+    });
+
+    const { email, name, profile } = user;
+
+    return res.json({
+      success: true,
+      user: {
+        email,
+        name,
+        profile,
       },
-    );
-
-    return res.json({ status: "ok", quote: user.quote });
+    });
   } catch (error) {
-    res.json({ status: "error", error: "Token inválido" });
-  }
-});
-
-app.post("/api/quote", async (req, res) => {
-  const token = req.headers["x-access-token"];
-
-  try {
-    const decoded = jwt.verify(token, "secret123");
-    const email = decoded.email;
-     await User.updateOne(
-      {
-        email: email,
-      },
-      {
-        $set: {
-          quote: req.body.quote,
-        },
-      }
-    );
-
-    return res.json({ status: "ok" });
-  } catch (error) {
-    res.json({ status: "error", error: "Token inválido" });
+    res.json({ success: false, message: "Usuário não encontrado" });
   }
 });
 
