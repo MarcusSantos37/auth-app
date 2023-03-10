@@ -1,15 +1,16 @@
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 
 import { Dashboard } from "./Dashboard";
+import GlobalContext from "../contexts";
 import { Login } from "./Login";
 import { PageNotFound } from "./PageNotFound";
+import Recovery from "./Recovery";
 import { Register } from "./Register";
-
-const token = localStorage.getItem("token");
+import Reset from "./Reset";
 
 const router = createBrowserRouter([
   {
-    path: "/dashboard",
+    path: "/",
     element: <Dashboard />,
   },
   {
@@ -21,12 +22,16 @@ const router = createBrowserRouter([
     element: <Register />,
   },
   {
-    path: "*",
-    element: <PageNotFound />,
+    path: "/reset",
+    element: <Reset />,
   },
   {
-    path: "/",
-    element: token ? <Dashboard /> : <Login />,
+    path: "/recovery",
+    element: <Recovery />,
+  },
+  {
+    path: "*",
+    element: <PageNotFound />,
   },
 ]);
 
